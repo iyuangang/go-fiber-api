@@ -24,8 +24,8 @@ A high-performance API built with Go using the GoFiber framework, integrating Po
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/gofiber-api.git
-   cd gofiber-api
+   git clone https://github.com/iyuangang/go-fiber-api.git
+   cd go-fiber-api
    ```
 
 2. Install dependencies:
@@ -99,4 +99,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [GORM](https://gorm.io) - ORM library for Go.
 - [Redis](https://redis.io) - In-memory data structure store.
 ```
-
