@@ -1,16 +1,17 @@
 package main
 
 import (
-    "github.com/gofiber/fiber/v2"
-    "github.com/gofiber/fiber/v2/middleware/logger"
-    "go-fiber-api/internal/config"
-    "go-fiber-api/internal/db"
-    "go-fiber-api/internal/cache"
-    "go-fiber-api/internal/api"
-    "go-fiber-api/internal/middleware"
-    "log"
-    "time"
-    "fmt"
+	"fmt"
+	"go-fiber-api/internal/api"
+	"go-fiber-api/internal/cache"
+	"go-fiber-api/internal/config"
+	"go-fiber-api/internal/db"
+	"go-fiber-api/internal/middleware"
+	"log"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 func main() {
@@ -34,6 +35,9 @@ func main() {
 
     // 设置路由
     app.Get("/user/:id", api.GetUser)
+    app.Post("/user", api.CreateUser)
+    app.Put("/user/:id", api.UpdateUser)
+    app.Delete("/user/:id", api.DeleteUser)
 
     // 启动服务器
     log.Printf("Starting server on port %d", config.Cfg.Server.Port)
