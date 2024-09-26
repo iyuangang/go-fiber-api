@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"encoding/json"
 	"go-fiber-api/internal/config"
 	"log"
 	"time"
@@ -30,6 +31,22 @@ func GetCache(key string) (string, error) {
     return RedisClient.Get(ctx, key).Result()
 }
 
+func GetCacheObject(key string, obj interface{}) error {
+    data, err := RedisClient.Get(ctx, key).Bytes()
+    if err != nil {
+        return err
+    }
+    
+    return json.Unmarshal(data, obj)
+}
+
 func SetCache(key string, value interface{}, expiration time.Duration) error {
-    return RedisClient.Set(ctx, key, value, expiration).Err()
+    jsonValue, err := json.Marshal(value)
+    if err != nil {
+        return err
+    }
+    
+    // Store the JSON string in Redis
+    return RedisClient.Set(ctx, key, jsonValue, expiration).Err()
+
 }
