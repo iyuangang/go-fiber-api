@@ -6,15 +6,18 @@ import (
 	"go-fiber-api/internal/cache"
 	"go-fiber-api/internal/config"
 	"go-fiber-api/internal/db"
+	"go-fiber-api/internal/logger"
 	"go-fiber-api/internal/middleware"
-	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/logger"
+	"go.uber.org/zap"
 )
 
 func main() {
+    // 初始化日志
+    logger.InitLogger()
+    defer logger.Log.Sync()
     // 初始化配置
     config.InitConfig()
 
@@ -30,8 +33,6 @@ func main() {
         ReadTimeout:  time.Duration(config.Cfg.Server.ReadTimeout) * time.Second,
     })
 
-    // 日志中间件
-    app.Use(logger.New())
 
     // 设置路由
     app.Get("/user/:id", api.GetUser)
@@ -40,8 +41,11 @@ func main() {
     app.Delete("/user/:id", api.DeleteUser)
 
     // 启动服务器
-    log.Printf("Starting server on port %d", config.Cfg.Server.Port)
+    logger.Log.Info("Starting server",
+        zap.Int("port", config.Cfg.Server.Port),
+    )
+
     if err := app.Listen(fmt.Sprintf(":%d", config.Cfg.Server.Port)); err != nil {
-        log.Fatalf("Error starting server: %s", err)
+        logger.Log.Fatal("Error starting server", zap.Error(err))
     }
 }

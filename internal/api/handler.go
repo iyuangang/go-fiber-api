@@ -4,11 +4,12 @@ import (
 	"go-fiber-api/internal/cache"
 	"go-fiber-api/internal/config"
 	"go-fiber-api/internal/db"
+	"go-fiber-api/internal/logger"
 	"go-fiber-api/internal/models"
-	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"go.uber.org/zap"
 )
 
 //获取用户信息
@@ -30,7 +31,8 @@ func GetUser(c *fiber.Ctx) error {
     // 将查询结果存入 Redis
     cacheExpiration := time.Duration(config.Cfg.Redis.CacheExpirationMinutes) * time.Minute
     if err := cache.SetCache(id, user, cacheExpiration); err != nil {
-        log.Println("Failed to set cache:", err)
+        logger.Log.Info("Failed to set cache:", zap.String("id", id))
+
     }
 
     return c.Status(fiber.StatusOK).JSON(user)

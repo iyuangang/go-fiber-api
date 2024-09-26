@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"go-fiber-api/internal/config"
-	"log"
+	"go-fiber-api/internal/logger"
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"go.uber.org/zap"
 )
 
 var RedisClient *redis.Client
@@ -21,10 +22,11 @@ func InitRedis() {
     })
 
     if err := RedisClient.Ping(ctx).Err(); err != nil {
-        log.Fatalf("Failed to connect to Redis: %s", err)
+        logger.Log.Error("Failed to connect to Redis:", zap.String("err", err.Error()))
+
     }
 
-    log.Println("Redis connection initialized")
+    logger.Log.Info("Redis connection initialized") 
 }
 
 func GetCache(key string) (string, error) {
