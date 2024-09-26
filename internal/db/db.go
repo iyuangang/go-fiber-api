@@ -1,12 +1,13 @@
 package db
 
 import (
-    "gorm.io/driver/postgres"
-    "gorm.io/gorm"
-    "gorm.io/gorm/logger"
-    "go-fiber-api/internal/config"
-    "time"
-    "log"
+	"go-fiber-api/internal/config"
+	"log"
+	"time"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB

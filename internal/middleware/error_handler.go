@@ -1,8 +1,9 @@
 package middleware
 
 import (
-    "github.com/gofiber/fiber/v2"
-    "log"
+	"log"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func ErrorHandler(c *fiber.Ctx, err error) error {

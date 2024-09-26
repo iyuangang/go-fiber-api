@@ -1,11 +1,12 @@
 package cache
 
 import (
-    "github.com/go-redis/redis/v8"
-    "context"
-    "time"
-    "go-fiber-api/internal/config"
-    "log"
+	"context"
+	"go-fiber-api/internal/config"
+	"log"
+	"time"
+
+	"github.com/go-redis/redis/v8"
 )
 
 var RedisClient *redis.Client
