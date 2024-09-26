@@ -31,7 +31,7 @@ func GetUser(c *fiber.Ctx) error {
     // 将查询结果存入 Redis
     cacheExpiration := time.Duration(config.Cfg.Redis.CacheExpirationMinutes) * time.Minute
     if err := cache.SetCache(id, user, cacheExpiration); err != nil {
-        logger.Log.Info("Failed to set cache:", zap.String("id", id))
+        logger.Log.Info("Failed to set cache:", zap.Error(err))
 
     }
 
@@ -72,12 +72,20 @@ func UpdateUser(c *fiber.Ctx) error {
 // 删除用户
 func DeleteUser(c *fiber.Ctx) error {
     id := c.Params("id")
+    
+    // 删除数据库中的用户
     if err := db.DB.Delete(&models.User{}, id).Error; err != nil {
+        logger.Log.Error("Failed to delete user from database", zap.String("id", id), zap.Error(err))
         return fiber.NewError(fiber.StatusNotFound, "User not found")
     }
 
     // 删除缓存
-    // cache.RedisClient.Del(cache.ctx, id)
+    err := cache.DeleteCache(id)
+    if err != nil {
+        logger.Log.Warn("Failed to delete user from cache", zap.String("id", id), zap.Error(err))
+        // 注意：我们不因为缓存删除失败而返回错误，因为用户已经从数据库中删除
+    }
 
+    logger.Log.Info("User deleted successfully", zap.String("id", id))
     return c.Status(fiber.StatusNoContent).JSON(nil)
 }

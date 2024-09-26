@@ -22,8 +22,7 @@ func InitRedis() {
     })
 
     if err := RedisClient.Ping(ctx).Err(); err != nil {
-        logger.Log.Error("Failed to connect to Redis:", zap.String("err", err.Error()))
-
+        logger.Log.Error("Failed to connect to Redis:", zap.Error(err))
     }
 
     logger.Log.Info("Redis connection initialized") 
@@ -50,5 +49,9 @@ func SetCache(key string, value interface{}, expiration time.Duration) error {
     
     // Store the JSON string in Redis
     return RedisClient.Set(ctx, key, jsonValue, expiration).Err()
+}
 
+func DeleteCache(key string) error {
+    logger.Log.Debug("Deleting cache", zap.String("key", key))
+    return RedisClient.Del(ctx, key).Err()
 }

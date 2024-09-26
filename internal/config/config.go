@@ -1,9 +1,10 @@
 package config
 
 import (
-	"log"
+	"go-fiber-api/internal/logger"
 
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 type Config struct {
@@ -39,7 +40,7 @@ func InitConfig() {
     viper.AddConfigPath("./config")
 
     if err := viper.ReadInConfig(); err != nil {
-        log.Fatalf("Error reading config file: %s", err)
+        logger.Log.Fatal("Error reading config file",zap.Error(err))
     }
 
     // 读取 PostgreSQL 配置

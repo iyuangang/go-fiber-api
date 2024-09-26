@@ -2,12 +2,13 @@ package db
 
 import (
 	"go-fiber-api/internal/config"
-	"log"
 	"time"
 
+	"go-fiber-api/internal/logger"
+
+	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB
@@ -16,16 +17,17 @@ func InitDB() {
     var err error
     dsn := config.Cfg.Postgres.URL
     DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
-        Logger: logger.Default.LogMode(logger.Info),
     })
 
     if err != nil {
-        log.Fatalf("Failed to connect to the database: %s", err)
+        logger.Log.Fatal("Failed to connect to the database", zap.Error(err))
+
     }
 
     sqlDB, err := DB.DB()
     if err != nil {
-        log.Fatalf("Failed to get database instance: %s", err)
+        logger.Log.Fatal("Failed to get database instance", zap.Error(err))
+
     }
 
     // 设置连接池参数
@@ -33,5 +35,5 @@ func InitDB() {
     sqlDB.SetMaxOpenConns(config.Cfg.Postgres.MaxOpenConns)
     sqlDB.SetConnMaxLifetime(time.Duration(config.Cfg.Postgres.ConnMaxLifetime) * time.Second)
 
-    log.Println("Database connection initialized")
+    logger.Log.Info("Database connection initialized")
 }
