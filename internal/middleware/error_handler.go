@@ -1,7 +1,9 @@
 package middleware
 
 import (
+	"go-fiber-api/internal/config"
 	"go-fiber-api/internal/logger"
+	"runtime/debug"
 
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -20,7 +22,18 @@ func ErrorHandler(c *fiber.Ctx, err error) error {
 		zap.String("ip", c.IP()),
 		zap.Error(err),
 	)
-    return c.Status(code).JSON(fiber.Map{
-        "status":  code,
-    })
+	
+    // 添加更详细的错误响应
+    errorResponse := fiber.Map{
+			"status":  code,
+			"message": err.Error(),
+	}
+
+	// 在非生产环境中，可以添加更多调试信息
+	if !config.Cfg.Env.IsProduction {
+			errorResponse["stack"] = string(debug.Stack())
+	}
+
+	return c.Status(code).JSON(errorResponse)
+
 }

@@ -11,6 +11,7 @@ type Config struct {
     Postgres PostgresConfig
     Redis    RedisConfig
     Server   ServerConfig
+    Env      EnvConfig
 }
 
 type PostgresConfig struct {
@@ -30,6 +31,10 @@ type RedisConfig struct {
 type ServerConfig struct {
     Port        int
     ReadTimeout int
+}
+
+type EnvConfig struct {
+    IsProduction bool
 }
 
 var Cfg Config
@@ -58,4 +63,7 @@ func InitConfig() {
     // 读取服务器配置
     Cfg.Server.Port = viper.GetInt("server.port")
     Cfg.Server.ReadTimeout = viper.GetInt("server.read_timeout")
+
+    // 读取运行环境配置
+    Cfg.Env.IsProduction = viper.GetBool("env.is_production")
 }
