@@ -15,7 +15,8 @@ type Config struct {
 }
 
 type PostgresConfig struct {
-    URL             string
+    Master          string
+    Slave           string
     MaxIdleConns    int
     MaxOpenConns    int
     ConnMaxLifetime int
@@ -49,7 +50,8 @@ func InitConfig() {
     }
 
     // 读取 PostgreSQL 配置
-    Cfg.Postgres.URL = viper.GetString("postgres.url")
+    Cfg.Postgres.Master = viper.GetString("postgres.master")
+    Cfg.Postgres.Slave = viper.GetString("postgres.slave")
     Cfg.Postgres.MaxIdleConns = viper.GetInt("postgres.max_idle_conns")
     Cfg.Postgres.MaxOpenConns = viper.GetInt("postgres.max_open_conns")
     Cfg.Postgres.ConnMaxLifetime = viper.GetInt("postgres.conn_max_lifetime")

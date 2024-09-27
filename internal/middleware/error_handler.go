@@ -35,5 +35,4 @@ func ErrorHandler(c *fiber.Ctx, err error) error {
 	}
 
 	return c.Status(code).JSON(errorResponse)
-
 }
