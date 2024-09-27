@@ -33,9 +33,10 @@ func GetUser(c *fiber.Ctx) error {
     // 将查询结果存入 Redis
     cacheExpiration := time.Duration(config.Cfg.Redis.CacheExpirationMinutes) * time.Minute
     if err := cache.SetCache(id, user, cacheExpiration); err != nil {
-        logger.Log.Info("Failed to set cache:", zap.Error(err))
-
+        logger.Log.Error("Failed to set cache:", zap.Error(err))
     }
+
+    logger.Log.Debug("User get successfully", zap.String("id", id))
 
     return c.Status(fiber.StatusOK).JSON(user)
 }
@@ -51,6 +52,8 @@ func CreateUser(c *fiber.Ctx) error {
         return fiber.NewError(fiber.StatusInternalServerError, "Failed to create user")
     }
 
+    logger.Log.Debug("User create successfully")
+
     return c.Status(fiber.StatusCreated).JSON(user)
 }
 
@@ -65,6 +68,8 @@ func UpdateUser(c *fiber.Ctx) error {
     if err := db.DB.Model(&user).Where("id = ?", id).Updates(user).Error; err != nil {
         return fiber.NewError(fiber.StatusInternalServerError, "Failed to update user")
     }
+
+    logger.Log.Debug("User update successfully", zap.String("id", id))
 
     // 更新缓存
     cache.SetCache(id, user, time.Duration(config.Cfg.Redis.CacheExpirationMinutes)*time.Minute)
@@ -88,7 +93,7 @@ func DeleteUser(c *fiber.Ctx) error {
         // 注意：我们不因为缓存删除失败而返回错误，因为用户已经从数据库中删除
     }
 
-    logger.Log.Info("User deleted successfully", zap.String("id", id))
+    logger.Log.Debug("User deleted successfully", zap.String("id", id))
     return c.Status(fiber.StatusNoContent).JSON(nil)
 }
 

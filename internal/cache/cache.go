@@ -29,6 +29,7 @@ func InitRedis() {
 }
 
 func GetCache(key string) (string, error) {
+    logger.Log.Debug("Getting cache", zap.String("key", key))
     return RedisClient.Get(ctx, key).Result()
 }
 
@@ -38,6 +39,7 @@ func GetCacheObject(key string, obj interface{}) error {
         return err
     }
     
+    logger.Log.Debug("Getting cache object", zap.String("key", key))
     return json.Unmarshal(data, obj)
 }
 
@@ -47,6 +49,7 @@ func SetCache(key string, value interface{}, expiration time.Duration) error {
         return err
     }
     
+    logger.Log.Debug("Setting cache", zap.String("key", key))
     // Store the JSON string in Redis
     return RedisClient.Set(ctx, key, jsonValue, expiration).Err()
 }

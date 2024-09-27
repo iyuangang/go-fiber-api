@@ -2,13 +2,11 @@ package main
 
 import (
 	"fmt"
-	"go-fiber-api/internal/api"
 	"go-fiber-api/internal/cache"
 	"go-fiber-api/internal/config"
 	"go-fiber-api/internal/db"
 	"go-fiber-api/internal/logger"
-	"go-fiber-api/internal/middleware"
-	"go-fiber-api/internal/monitor"
+	"go-fiber-api/internal/routes"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -30,21 +28,52 @@ func main() {
     cache.InitRedis()
 
     // 初始化 Fiber
-    app := fiber.New(fiber.Config{
-        ErrorHandler: middleware.ErrorHandler,
-        ReadTimeout:  time.Duration(config.Cfg.Server.ReadTimeout) * time.Second,
-    })
-    app.Use(middleware.SecurityMiddleware())
-    app.Use(monitor.PrometheusMiddleware())
+    // 创建 Fiber 应用实例，配置日志
+	app := fiber.New(fiber.Config{
+		// 启用日志
+		EnablePrintRoutes: true,
+		// 自定义日志输出
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			code := fiber.StatusInternalServerError
+			if e, ok := err.(*fiber.Error); ok {
+				code = e.Code
+			}
+			logger.Log.Error("Request error",
+				zap.Int("status", code),
+				zap.String("method", c.Method()),
+				zap.String("path", c.Path()),
+				zap.String("ip", c.IP()),
+				zap.Duration("latency", c.Locals("latency").(time.Duration)),
+				zap.Error(err),
+			)
+			return c.Status(code).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		},
+	})
+    // 添加请求时间中间件
+	app.Use(func(c *fiber.Ctx) error {
+		start := time.Now()
+		err := c.Next()
+		latency := time.Since(start)
+		c.Locals("latency", latency)
+		
+		// 记录成功的请求
+		if err == nil {
+			logger.Log.Info("Request processed",
+				zap.String("method", c.Method()),
+				zap.String("path", c.Path()),
+				zap.Int("status", c.Response().StatusCode()),
+				zap.Duration("latency", latency),
+				zap.String("ip", c.IP()),
+			)
+		}
+		return err
+	})
 
-    // 设置路由
-    app.Get("/user/:id", api.GetUser)
-    app.Get("/users/:id", api.GetMultipleUsers)
-    app.Post("/user", api.CreateUser)
-    app.Put("/user/:id", api.UpdateUser)
-    app.Delete("/user/:id", api.DeleteUser)
+    
+    routes.SetupRoutes(app)
 
-    monitor.SetupPrometheusEndpoint(app)
 
     // 启动服务器
     logger.Log.Info("Starting server",
