@@ -8,6 +8,7 @@ import (
 	"go-fiber-api/internal/db"
 	"go-fiber-api/internal/logger"
 	"go-fiber-api/internal/middleware"
+	"go-fiber-api/internal/monitor"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -18,6 +19,7 @@ func main() {
     // 初始化日志
     logger.InitLogger()
     defer logger.Log.Sync()
+
     // 初始化配置
     config.InitConfig()
 
@@ -33,7 +35,7 @@ func main() {
         ReadTimeout:  time.Duration(config.Cfg.Server.ReadTimeout) * time.Second,
     })
     app.Use(middleware.SecurityMiddleware())
-
+    app.Use(monitor.PrometheusMiddleware())
 
     // 设置路由
     app.Get("/user/:id", api.GetUser)
@@ -41,6 +43,8 @@ func main() {
     app.Post("/user", api.CreateUser)
     app.Put("/user/:id", api.UpdateUser)
     app.Delete("/user/:id", api.DeleteUser)
+
+    monitor.SetupPrometheusEndpoint(app)
 
     // 启动服务器
     logger.Log.Info("Starting server",
