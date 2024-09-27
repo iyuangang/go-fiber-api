@@ -16,7 +16,6 @@ var DB *gorm.DB
 func InitDB() {
     var err error
     dsn := config.Cfg.Postgres.Master
-    dsn_master := config.Cfg.Postgres.Master
     dsn_slave := config.Cfg.Postgres.Slave
     DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
     })
@@ -26,7 +25,7 @@ func InitDB() {
 
     // 添加数据库读写分离
     err = DB.Use(dbresolver.Register(dbresolver.Config{
-        Sources:  []gorm.Dialector{postgres.Open(dsn_master)},
+        Sources:  []gorm.Dialector{postgres.Open(dsn)},
         Replicas: []gorm.Dialector{postgres.Open(dsn_slave)},
         Policy:   dbresolver.RandomPolicy{},
     }))

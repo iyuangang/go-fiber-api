@@ -1,11 +1,13 @@
 package api
 
 import (
+	"encoding/json"
 	"go-fiber-api/internal/cache"
 	"go-fiber-api/internal/config"
 	"go-fiber-api/internal/db"
 	"go-fiber-api/internal/logger"
 	"go-fiber-api/internal/models"
+	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -88,4 +90,66 @@ func DeleteUser(c *fiber.Ctx) error {
 
     logger.Log.Info("User deleted successfully", zap.String("id", id))
     return c.Status(fiber.StatusNoContent).JSON(nil)
+}
+
+// 使用并发处理批量请求
+func GetMultipleUsers(c *fiber.Ctx) error {
+    var userIDs models.UserIDs
+    if err := c.BodyParser(&userIDs); err != nil {
+        return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
+    }
+    var wg sync.WaitGroup
+    userChan := make(chan *models.User, len(userIDs.IDS))
+    errChan := make(chan error, len(userIDs.IDS))
+
+    for _, id := range userIDs.IDS {
+        wg.Add(1)
+        go func(id string) {
+            defer wg.Done()
+            user, err := GetUserByID(id)
+            if err != nil {
+                errChan <- err
+                return
+            }
+            userChan <- user
+        }(string(id))
+    }
+
+    wg.Wait()
+    close(userChan)
+    close(errChan)
+
+    users := make([]*models.User, 0, len(userIDs.IDS))
+    for user := range userChan {
+        users = append(users, user)
+    }
+
+    if len(errChan) > 0 {
+        return fiber.NewError(fiber.StatusInternalServerError, "Error fetching some users")
+    }
+
+    return c.JSON(users)
+}
+
+func GetUserByID(id string) (*models.User, error) {
+    // Try to get from cache first
+    cachedUser, err := cache.GetCache(id)
+    if err == nil {
+        var user models.User
+        if err := json.Unmarshal([]byte(cachedUser), &user); err == nil {
+            return &user, nil
+        }
+    }
+
+    // If not in cache, query the database
+    var user models.User
+    if err := db.DB.First(&user, id).Error; err != nil {
+        return nil, err
+    }
+
+    // Cache the result
+    cacheExpiration := time.Duration(config.Cfg.Redis.CacheExpirationMinutes) * time.Minute
+    cache.SetCache(id, user, cacheExpiration)
+
+    return &user, nil
 }

@@ -32,10 +32,12 @@ func main() {
         ErrorHandler: middleware.ErrorHandler,
         ReadTimeout:  time.Duration(config.Cfg.Server.ReadTimeout) * time.Second,
     })
+    app.Use(middleware.SecurityMiddleware())
 
 
     // 设置路由
     app.Get("/user/:id", api.GetUser)
+    app.Get("/users/:id", api.GetMultipleUsers)
     app.Post("/user", api.CreateUser)
     app.Put("/user/:id", api.UpdateUser)
     app.Delete("/user/:id", api.DeleteUser)
