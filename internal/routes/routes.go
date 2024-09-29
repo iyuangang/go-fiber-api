@@ -10,6 +10,11 @@ import (
 )
 
 func SetupRoutes(app *fiber.App) {
+
+  app.Use(monitor.PrometheusMiddleware())
+  app.Use(recover.New())
+  app.Use(middleware.SecurityMiddleware())
+
 	// 用户相关路由
 	userGroup := app.Group("/user")
 	userGroup.Get("/:id", api.GetUser)
@@ -26,10 +31,7 @@ func SetupRoutes(app *fiber.App) {
 	})
 
 	// 添加中间件
-	app.Use(middleware.SecurityMiddleware())
-  app.Use(recover.New())
-  app.Use(middleware.SecurityMiddleware())
-  app.Use(monitor.PrometheusMiddleware())
+	monitor.SetupPrometheusEndpoint(app)
 
 	// 可以在这里添加更多的路由和中间件
 }
