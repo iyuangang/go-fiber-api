@@ -13,6 +13,10 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	Version string
+	Commit  string
+)
 func main() {
     // 初始化日志
     logger.InitLogger()
@@ -76,9 +80,10 @@ func main() {
 
 
     // 启动服务器
-    logger.Log.Info("Starting server",
-        zap.Int("port", config.Cfg.Server.Port),
-    )
+		// 打印版本信息
+    logger.Log.Info(fmt.Sprintf("Starting go-fiber-api version %s (commit %s)", Version, Commit),
+		zap.Int("port", config.Cfg.Server.Port),
+	  )
 
     if err := app.Listen(fmt.Sprintf(":%d", config.Cfg.Server.Port)); err != nil {
         logger.Log.Fatal("Error starting server", zap.Error(err))

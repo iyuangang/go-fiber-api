@@ -1,6 +1,9 @@
 # 构建阶段
 FROM golang:1.22-alpine AS builder
 
+ARG VERSION
+ARG COMMIT
+
 # 安装 git 和 ca-certificates (需要 git 来获取私有依赖，如果有的话)
 RUN apk add --no-cache git ca-certificates tzdata && update-ca-certificates
 
@@ -17,7 +20,7 @@ RUN go mod download
 COPY . .
 
 # 构建应用
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -a -installsuffix cgo -o go-fiber-api ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s -X main.Version=${VERSION} -X main.Commit=${COMMIT}" -a -installsuffix cgo -o go-fiber-api ./cmd/server
 
 # 最终阶段
 FROM scratch

@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Multi-platform Build
 
 on:
   push:
@@ -7,46 +7,81 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: macos-latest
+            platform: darwin
+          - os: windows-latest
+            platform: windows
+
+    runs-on: ${{ matrix.os }}
+
     steps:
     - uses: actions/checkout@v3
+
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
         go-version: '1.20'
-    - name: Test
-      run: go test -v ./...
 
-  build:
-    needs: test
+    - name: Get version info
+      id: version
+      run: |
+        echo "VERSION=$(git describe --tags --always --dirty)" >> $GITHUB_OUTPUT
+        echo "COMMIT=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Build
+      env:
+        GOOS: ${{ matrix.platform }}
+        GOARCH: amd64
+      run: |
+        go build -ldflags="-X main.Version=${{ steps.version.outputs.VERSION }} -X main.Commit=${{ steps.version.outputs.COMMIT }}" -o go-fiber-api-${{ matrix.platform }}-amd64 ./cmd/server
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: go-fiber-api-${{ matrix.platform }}-amd64-${{ steps.version.outputs.VERSION }}-${{ steps.version.outputs.COMMIT }}
+        path: go-fiber-api-${{ matrix.platform }}-amd64
+        compression-level: 9
+
+  docker:
+    needs: build
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Build Docker image
-      run: docker build -t your-docker-image:${{ github.sha }} .
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
     - name: Login to Docker Hub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Push Docker image
-      run: |
-        docker tag your-docker-image:${{ github.sha }} your-dockerhub-username/your-docker-image:${{ github.sha }}
-        docker push your-dockerhub-username/your-docker-image:${{ github.sha }}
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-    - name: Deploy to server
-      uses: appleboy/ssh-action@master
+    - name: Get version info
+      id: version
+      run: |
+        echo "VERSION=$(git describe --tags --always --dirty)" >> $GITHUB_OUTPUT
+        echo "COMMIT=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Build and push
+      uses: docker/build-push-action@v4
       with:
-        host: ${{ secrets.SERVER_HOST }}
-        username: ${{ secrets.SERVER_USERNAME }}
-        key: ${{ secrets.SERVER_SSH_KEY }}
-        script: |
-          docker pull your-dockerhub-username/your-docker-image:${{ github.sha }}
-          docker stop your-container-name || true
-          docker rm your-container-name || true
-          docker run -d --name your-container-name -p 8080:8080 your-dockerhub-username/your-docker-image:${{ github.sha }}
+        context: .
+        push: true
+        platforms: linux/amd64,linux/arm64
+        tags: |
+          your-dockerhub-username/go-fiber-api:latest
+          your-dockerhub-username/go-fiber-api:${{ steps.version.outputs.VERSION }}
+        build-args: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          COMMIT=${{ steps.version.outputs.COMMIT }}
