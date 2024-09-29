@@ -80,8 +80,8 @@ jobs:
         push: true
         platforms: linux/amd64,linux/arm64
         tags: |
-          your-dockerhub-username/go-fiber-api:latest
-          your-dockerhub-username/go-fiber-api:${{ steps.version.outputs.VERSION }}
+          ${{ secrets.DOCKERHUB_USERNAME }}/go-fiber-api:latest
+          ${{ secrets.DOCKERHUB_USERNAME }}/go-fiber-api:${{ steps.version.outputs.VERSION }}
         build-args: |
           VERSION=${{ steps.version.outputs.VERSION }}
           COMMIT=${{ steps.version.outputs.COMMIT }}
