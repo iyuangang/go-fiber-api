@@ -2,9 +2,12 @@ name: Multi-platform Build
 
 on:
   push:
-    branches: [ master ]
+    tags: 
+      - "v*"
+    branches: [ dev ]
+
   pull_request:
-    branches: [ master ]
+    branches: [ dev ]
 
 jobs:
   build:
