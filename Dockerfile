@@ -33,8 +33,8 @@ ENV TZ=Asia/Shanghai
 WORKDIR /root/
 
 # 从构建器阶段复制二进制文件
-COPY --from=builder /app/main .
-COPY --from=builder /app/config ./config
+COPY --from=builder /app/go-fiber-api .
+COPY --from=builder /app/config/config_example.json ./config/config.json
 
 # 暴露端口
 EXPOSE 3000

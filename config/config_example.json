@@ -1,0 +1,22 @@
+{
+  "postgres": {
+    "master": "postgres://username:password@127.0.0.1:5432/fiber",
+    "slave": "postgres://username:password@127.0.0.1:5436/fiber",
+    "max_idle_conns": 10,
+    "max_open_conns": 100,
+    "conn_max_lifetime": 300
+  },
+  "redis": {
+    "addr": "127.0.0.1:6379",
+    "pass": "",
+    "db": 0,
+    "cache_expiration_minutes": 10
+  },
+  "server": {
+    "port": 3000,
+    "read_timeout": 5
+  },
+  "env": {
+    "is_production": true
+  }
+}
