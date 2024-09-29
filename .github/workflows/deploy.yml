@@ -2,9 +2,9 @@ name: Multi-platform Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   build:
@@ -22,12 +22,12 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v4
       with:
-        go-version: '1.20'
+        go-version: '1.22'
 
     - name: Get version info
       id: version
@@ -43,7 +43,7 @@ jobs:
         go build -ldflags="-X main.Version=${{ steps.version.outputs.VERSION }} -X main.Commit=${{ steps.version.outputs.COMMIT }}" -o go-fiber-api-${{ matrix.platform }}-amd64 ./cmd/server
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: go-fiber-api-${{ matrix.platform }}-amd64-${{ steps.version.outputs.VERSION }}-${{ steps.version.outputs.COMMIT }}
         path: go-fiber-api-${{ matrix.platform }}-amd64
