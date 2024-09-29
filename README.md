@@ -1,79 +1,60 @@
-# GoFiber API with PostgreSQL and Redis
+# Go Fiber API
 
-A high-performance API built with Go using the GoFiber framework, integrating PostgreSQL for data storage and Redis for caching. This project provides a clean structure and efficient data querying, suitable for scalable applications.
+A high-performance RESTful API built with Go and the Fiber web framework.
 
 ## Features
 
-- **RESTful API**: Simple and intuitive API endpoints for user data retrieval.
-- **Caching**: Uses Redis for caching database queries, improving performance.
-- **Database Integration**: PostgreSQL connection with GORM for ORM support.
-- **Configuration Management**: JSON-based configuration with `viper` for flexible settings.
-- **Logging**: Comprehensive logging middleware for tracking requests and errors.
-- **Error Handling**: Unified error handling middleware for consistent responses.
+- Fast and efficient API endpoints using Fiber
+- PostgreSQL database integration with GORM
+- Redis caching for improved performance
+- Structured logging with Zap
+- Containerization with Docker
+- Multi-platform build support (Linux, macOS, Windows)
+- Continuous Integration and Deployment with GitHub Actions
+
+## Prerequisites
+
+- Go 1.22 or higher
+- PostgreSQL
+- Redis
+- Docker (optional)
 
 ## Getting Started
 
-### Prerequisites
+### Clone the repository
 
-- Go (1.16+)
-- PostgreSQL
-- Redis
-
-### Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/iyuangang/go-fiber-api.git
-   cd go-fiber-api
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   go mod tidy
-   ```
-
-3. Set up your PostgreSQL and Redis databases and update the configuration in `config/config.json`.
-
-### Configuration
-
-Edit the `config/config.json` file:
-
-```json
-{
-  "postgres": {
-    "url": "postgres://user:password@localhost:5432/mydb",
-    "max_idle_conns": 10,
-    "max_open_conns": 100,
-    "conn_max_lifetime": 300
-  },
-  "redis": {
-    "addr": "localhost:6379",
-    "pass": "",
-    "db": 0,
-    "cache_expiration_minutes": 10
-  },
-  "server": {
-    "port": 3000,
-    "read_timeout": 5
-  }
-}
+```bash
+git clone https://github.com/iyuangang/go-fiber-api.git
+cd go-fiber-api
 ```
 
-### Running the Application
+### Set up the configuration
 
-Run the application:
+Copy the example configuration file and adjust it to your needs:
+
+```bash
+cp config/config.example.yaml config/config.yaml
+```
+
+Edit `config/config.yaml` with your database and Redis credentials.
+
+### Run the application
 
 ```bash
 go run cmd/server/main.go
 ```
 
-The server will start on `http://localhost:3000`.
+The API will be available at `http://localhost:3000`.
 
-### API Endpoints
+## API Endpoints
 
-- **GET /user/:id**: Retrieve user information by ID. Caches results in Redis.
+- `GET /api/users`: Get all users
+- `GET /api/user/:id`: Get a user by ID
+- `POST /api/user`: Create a new user
+- `PUT /api/user/:id`: Update a user
+- `DELETE /api/user/:id`: Delete a user
+
+For detailed API documentation, please refer to the [API Documentation](docs/api.md).
 
 ### Example Request
 
@@ -81,13 +62,55 @@ The server will start on `http://localhost:3000`.
 curl -X GET http://localhost:3000/user/1
 ```
 
-### Logging
+## Development
 
-The application logs request details and errors to the console. Adjust logging levels in the application for production environments.
+### Running tests
+
+```bash
+go test ./...
+```
+
+### Building for different platforms
+
+The project includes GitHub Actions workflows for building the application for Linux, macOS, and Windows. You can also build manually:
+
+```bash
+# For Linux
+GOOS=linux GOARCH=amd64 go build -o go-fiber-api-linux-amd64 ./cmd/server
+
+# For macOS
+GOOS=darwin GOARCH=amd64 go build -o go-fiber-api-darwin-amd64 ./cmd/server
+
+# For Windows
+GOOS=windows GOARCH=amd64 go build -o go-fiber-api-windows-amd64.exe ./cmd/server
+```
+
+## Deployment
+
+### Using Docker
+
+Build the Docker image:
+
+```bash
+docker build -t go-fiber-api .
+```
+
+Run the container:
+
+```bash
+docker run -p 3000:3000 go-fiber-api
+```
+
+### CI/CD
+
+The project uses GitHub Actions for Continuous Integration and Deployment. The workflows are defined in `.github/workflows/`:
+
+- Runs tests and builds the application for the `dev` branch.
+- Builds and publishes Docker images for releases on the `main` branch.
 
 ## Contributing
 
-Contributions are welcome! Please submit a pull request or open an issue for any improvements or bug reports.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
@@ -98,4 +121,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [GoFiber](https://gofiber.io) - Fast web framework for Go.
 - [GORM](https://gorm.io) - ORM library for Go.
 - [Redis](https://redis.io) - In-memory data structure store.
-```
