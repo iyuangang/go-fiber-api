@@ -33,10 +33,10 @@ cd go-fiber-api
 Copy the example configuration file and adjust it to your needs:
 
 ```bash
-cp config/config.example.yaml config/config.yaml
+cp config/config.example.json config/config.json
 ```
 
-Edit `config/config.yaml` with your database and Redis credentials.
+Edit `config/config.json` with your database and Redis credentials.
 
 ### Run the application
 
